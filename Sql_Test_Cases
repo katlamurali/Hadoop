@@ -1,0 +1,126 @@
+Skip to content
+This repository
+Search
+Pull requests
+Issues
+Marketplace
+Gist
+ @katlamurali
+ Sign out
+ Watch 1
+  Star 0
+  Fork 0 shivashankartummala/sql
+ Code  Issues 0  Pull requests 0  Projects 0  Wiki Insights 
+Branch: master Find file Copy pathsql/sql-queries/emp-dept-mgr-queries.txt
+b831e87  6 hours ago
+@shivashankartummala shivashankartummala Update emp-dept-mgr-queries.txt
+1 contributor
+RawBlameHistory     
+98 lines (83 sloc)  5.36 KB
+Note : use oracle's cloud based db lab for practice : https://livesql.oracle.com/apex/
+emp : (empno, ename,job, mgr, hiredate, sal,comm, deptno)
+dep : (deptno, dname,loc)
+mgr :  (eid, mid)
+
+Write sql queries for the below questions considering the above schema.
+1. display name of emp, name of his manager for all the employees. (as shown in below sample results)
+         EMP NAME  MANAGER NAME
+         John        scott
+          scott       Bill gates
+    
+   selfjoin : select e.ename, m.ename from emp e, emp m where e.empno=m.mgr;
+   emp - mgr join:  select e.ename, m.ename from emp e, (select b.empno, a.ename from emp a , mgr b where a.empno=b.mid) m where e.empno=m.empno;
+   
+2. find the most senior employee, his sal for each dept. (as shown in below sample results)
+          DEPT-NAME  EMP-NAME  SAL   HIGHEST-TENURE-iN-YEARS 
+          ACCOUNTING  JOHN     5000   10
+          SALES       MARK     6000    12
+          
+    select a.deptno,a.ename, a.hiredate, a.sal from emp a where (a.deptno, a.hiredate) in (select e.deptno,min(e.hiredate) from emp e group by e.deptno); 
+3. find the employe with the highest sal from each dept (as shown in below sample results)
+              DEPT-NAME   EMP-NAME   HIGHEST-SAL 
+               ACCOUNTING  STEVE     6000   10
+               SALES       CHRIS     7000    12
+     A.  select e.deptno, d.dname, e.ename, e.sal from emp e inner join dept d on d.deptno = e.deptno  where (e.deptno,e.sal) in (select a.deptno,max(a.sal)from emp a group by a.deptno);         
+              
+4. find the names of the emp and his manager, who has the max term in the comapany
+
+     A. select e.ename, m.ename,e.hiredate from emp e, (select b.empno, a.ename from emp a , mgr b where a.empno=b.mid) m where e.empno=m.empno and e.hiredate =( select min(e.hiredate)from emp);
+   
+5. display the name of each employee and his tenure in the company.
+    A. select ename,(sysdate-hiredate)/365 tenure from emp; 
+
+6. find the employee,his salary , his manager, his managers salary where the employees salary is greater than his manager.
+  A.
+ 
+7. find the employee,his tenure in company , his manager, his managers tenure in company where the employees.
+8. find the employee,his tenure in company , his manager, his managers tenure in company where the employee's tenure  is greater than his manager's.
+9. find the employee,his salary, his tenure in company , his manager, his managers salry ,his managers tenure in company where the employees where the employee's tenure  is greater than his manager's and the employees salary is greater than his manager.
+10. display the job designations in the descing order of the hiearaarchy according to the mgr table.
+
+
+#######################Create the below tables and insert the data into your database ##############
+####################DDL statements for creatting tables #################
+create table dept(  
+  deptno     number(2,0),  
+  dname      varchar2(14),  
+  loc        varchar2(13),  
+  constraint pk_dept primary key (deptno)  
+);
+
+create table emp(  
+  empno    number(4,0),  
+  ename    varchar2(10),  
+  job      varchar2(9),  
+  mgr      number(4,0),  
+  hiredate date,  
+  sal      number(7,2),  
+  comm     number(7,2),  
+  deptno   number(2,0), 
+  constraint pk_emp primary key (empno),  
+  constraint fk_deptno foreign key (deptno) references dept (deptno)  
+);
+
+create table mgr(  
+  empno    number(4,0), 
+  mid    number(4,0),
+  constraint pk_mgr primary key (empno),
+  constraint fk_mgr foreign key (mid) references emp (empno));
+ ############################################################################ 
+#################################### INSERT DATA###########################################  
+
+ insert into DEPT (DEPTNO, DNAME, LOC)values(10, 'ACCOUNTING', 'NEW YORK');
+ insert into dept  values(20, 'RESEARCH', 'DALLAS');
+insert into dept  values(30, 'SALES', 'CHICAGO');
+insert into dept  values(40, 'OPERATIONS', 'BOSTON');
+
+
+insert into emp  values(   7839, 'KING', 'PRESIDENT', null,   to_date('17-11-1981','dd-mm-yyyy'),   5000, null, 10 );
+insert into emp  values(   7698, 'BLAKE', 'MANAGER', 7839,   to_date('1-5-1981','dd-mm-yyyy'),   2850, null, 30  );
+insert into emp  values(   7782, 'CLARK', 'MANAGER', 7839,   to_date('9-6-1981','dd-mm-yyyy'),   2450, null, 10 );
+insert into emp  values(   7566, 'JONES', 'MANAGER', 7839,   to_date('2-4-1981','dd-mm-yyyy'),  2975, null, 20 );
+insert into emp  values(   7788, 'SCOTT', 'ANALYST', 7566,   to_date('13-JUL-87','dd-mm-rr') - 85,   3000, null, 20 );
+insert into emp  values(   7902, 'FORD', 'ANALYST', 7566,   to_date('3-12-1981','dd-mm-yyyy'),  3000, null, 20  );
+insert into emp  values(   7499, 'ALLEN', 'SALESMAN', 7698,   to_date('20-2-1981','dd-mm-yyyy'),   1600, 300, 30 );
+insert into emp  values(   7521, 'WARD', 'SALESMAN', 7698,   to_date('22-2-1981','dd-mm-yyyy'),  1250, 500, 30  );
+insert into emp  values(   7844, 'TURNER', 'SALESMAN', 7698,   to_date('8-9-1981','dd-mm-yyyy'),   1500, 0, 30 );
+insert into emp  values(   7876, 'ADAMS', 'CLERK', 7788,  to_date('13-JUL-87', 'dd-mm-rr')- 51,  1100, null, 20 );
+insert into emp  values(   7900, 'JAMES', 'CLERK', 7698,   to_date('3-12-1981','dd-mm-yyyy'),   950, null, 30' );
+insert into emp  values(   7934, 'MILLER', 'CLERK', 7782,   to_date('23-1-1982','dd-mm-yyyy'),  1300, null, 10 );
+
+insert into mgr  values(   7839, null );
+insert into mgr  values(   7698, 7839  );
+insert into mgr  values(   7782, 7839 );
+insert into mgr  values(   7566, 7839 );
+insert into mgr  values(   7788,  7566 );
+insert into mgr  values(   7902,  7566 );
+insert into mgr  values(   7499,  7698);
+insert into mgr  values(   7521,  7698 );
+insert into mgr  values(   7844,  7698 );
+insert into mgr  values(   7876,  7788 );
+insert into mgr  values(   7900,  7698 );
+insert into mgr  values(   7934,  7782);
+ 
+ ######################################################################################################################
+Contact GitHub API Training Shop Blog About
+© 2017 GitHub, Inc. Terms Privacy Security Status Help
